@@ -432,6 +432,8 @@ def estimate_score(home_attack, away_attack, home_defense, away_defense, result)
 
 
 def apply_result(table, home_team, away_team, home_score, away_score):
+    table = table.copy()
+    
     if home_score > away_score:
         home_points, away_points = 3, 0
     elif home_score < away_score:
@@ -587,6 +589,7 @@ def run_monte_carlo_simulation(standings, fixtures, europe_epl_teams, num_simula
 try:
     standings, epl_fixtures, rescheduled, europe = load_data()
     standings = clean_standings(standings)
+    original_standings = standings.copy()
 
     fixtures = pd.concat(
         [epl_fixtures, rescheduled],
