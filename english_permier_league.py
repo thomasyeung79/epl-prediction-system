@@ -460,27 +460,35 @@ def apply_result(table, home_team, away_team, home_score, away_score):
 
 
 def apply_finished_results(table, fixtures, finished_results):
+    table = table.copy()
+    fixtures = fixtures.copy()
+    
     if finished_results.empty:
         return table, fixtures
 
     finished_results = finished_results.copy()
 
-    finished_results["home_team"] = finished_results["home_team"].replace(TEAM_NAME_MAP)
-    finished_results["away_team"] = finished_results["away_team"].replace(TEAM_NAME_MAP)
+    processed_matches = set()
 
     for _, row in finished_results.iterrows():
         home = row["home_team"]
         away = row["away_team"]
+        home_score = row["home_score"]
+        away_score = row["away_score"]
 
-        if home not in table["team"].values or away not in table["team"].values:
+        match_key = (home, away)
+
+        if match_key in processed_matches:
             continue
+
+        processed_matches.add(match_key)
 
         table = apply_result(
             table,
             home,
             away,
-            int(row["home_score"]),
-            int(row["away_score"])
+            home_score,
+            away_score
         )
 
         fixtures = fixtures[
@@ -630,7 +638,7 @@ try:
 
     europe_epl_teams = get_european_epl_teams(standings, europe)
 
-    simulation_table = standings.copy()
+    simulation_table = original_standings.copy()
     predicted_matches = []
 
     simulation_table, fixtures = apply_finished_results(
