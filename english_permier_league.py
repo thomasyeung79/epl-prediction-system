@@ -498,8 +498,9 @@ def run_monte_carlo_simulation(standings, fixtures, europe_epl_teams, num_simula
     top5_counts = {}
     sixth_counts = {}
     relegation_counts = {}
+    total_points = {}
 
-    for _ in range(num_simulations):
+    for i in range(num_simulations):
         table = standings.copy()
 
         for _, row in fixtures.iterrows():
@@ -552,6 +553,11 @@ def run_monte_carlo_simulation(standings, fixtures, europe_epl_teams, num_simula
             ascending=[False, False, False]
         ).reset_index(drop=True)
 
+        for _, team_row in final_table.iterrows():
+            team = team_row["team"]
+            points = team_row["points"]
+            total_points[team] = total_points.get(team, 0) + points
+
         champion = final_table.iloc[0]["team"]
         champion_counts[champion] = champion_counts.get(champion, 0) + 1
 
@@ -569,6 +575,7 @@ def run_monte_carlo_simulation(standings, fixtures, europe_epl_teams, num_simula
     for team in standings["team"].tolist():
         results.append({
             "team": team,
+            "avg_points": round(total_points.get(team, 0) / num_simulations, 2),
             "champion_probability": champion_counts.get(team, 0) / num_simulations,
             "top5_probability": top5_counts.get(team, 0) / num_simulations,
             "sixth_probability": sixth_counts.get(team, 0) / num_simulations,
@@ -576,7 +583,6 @@ def run_monte_carlo_simulation(standings, fixtures, europe_epl_teams, num_simula
         })
 
     return pd.DataFrame(results)
-
 
 try:
     standings, epl_fixtures, rescheduled, europe = load_data()
@@ -771,7 +777,7 @@ try:
         )
 
     simulation_results = simulation_results.sort_values(
-        by="champion_probability",
+        by="avg_points",
         ascending=False
     )
 
